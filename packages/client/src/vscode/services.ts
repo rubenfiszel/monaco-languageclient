@@ -112,8 +112,6 @@ export const importAllServices = async (instruction: InitServicesInstruction) =>
     const lcRequiredServices = await supplyRequiredServices();
 
     mergeServices(lcRequiredServices, userServices);
-    await configureExtHostWorker(instruction.serviceConfig?.enableExtHostWorker === true, userServices);
-
     reportServiceLoading(userServices, instruction.logger);
 
     if (instruction.performChecks === undefined || instruction.performChecks()) {
@@ -123,23 +121,6 @@ export const importAllServices = async (instruction: InitServicesInstruction) =>
     }
 };
 
-/**
- * Enable ext host to run in a worker
- */
-export const configureExtHostWorker = async (enableExtHostWorker: boolean, userServices: monaco.editor.IEditorOverrideServices) => {
-    if (enableExtHostWorker) {
-        const fakeWorker = new Worker(new URL('vscode/workers/extensionHost.worker', import.meta.url), { type: 'module' });
-        const workerConfig: WorkerConfig = {
-            url: fakeWorker.url.toString(),
-            options: fakeWorker.options
-        };
-
-        const extHostServices = {
-            ...getExtensionServiceOverride(workerConfig),
-        };
-        mergeServices(extHostServices, userServices);
-    }
-};
 
 export const createDefaultLocaleConfiguration = (): LocalizationOptions => {
     return {
